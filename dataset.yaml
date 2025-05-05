@@ -1,0 +1,26 @@
+# dataset.yaml
+path: /Users/adel/Desktop/StickerDetector
+train: images
+val: val_images/ # Now with labels
+
+names:
+  0: happy
+  1: sad
+  2: dead
+
+# augmentation:
+#   degrees: 5 # Was 15
+#   perspective: 0.0005
+
+# Augmentation (good settings for small datasets)
+augmentation:
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 5
+  translate: 0.1
+  scale: 0.5
+  shear: 0.0
+  perspective: 0.0005
+  flipud: 0.0
+  fliplr: 0.5

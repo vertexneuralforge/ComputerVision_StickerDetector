@@ -1,0 +1,102 @@
+=== Sticker Detection Project - Technical Report ===
+
+1. PROJECT SPECIFICATIONS
+- Objective: Real-world detection of "happy"/"sad"/"dead" stickers
+- Model: YOLOv8n (PyTorch)
+- Hardware: Apple M1 CPU (0.076h training)
+- Dataset: 17 custom images (6H/5S/6D)
+
+2. TECHNICAL IMPLEMENTATION
+
+A. Data Pipeline
+- Labeling: LabelMe → YOLO conversion
+  * Critical Fix: Rectangles-only enforcement
+  * Coordinate Normalization:
+    Before: "0 1.217179 0.493025 0.727513 0.567336"  
+    After:  "0 0.608590 0.246513 0.363757 0.283668"
+- Dataset Split:
+  * Train: 13 images
+  * Val:   4 images (1H/1S/2D)
+
+B. Training Configuration
+- Hyperparameters:
+  * Epochs: 100
+  * Batch: 8 (CPU-optimized)
+  * Image Size: 640x640
+  * Augmentation:
+    - Rotation: ±15°
+    - HSV Adjustments
+    - Horizontal Flips
+- Environment:
+  python3 -m venv .venv
+  pip install torch ultralytics opencv-python
+
+C. Performance Metrics (train13)
+┌─────────┬──────────┬────────────┬────────┐
+│ Class   │ mAP50    │ Precision  │ Recall │
+├─────────┼──────────┼────────────┼────────┤
+│ Happy   │ 0.111    │ 0.00221    │ 1.0    │
+│ Sad     │ 0.0      │ 0.0        │ 0.0    │
+│ Dead    │ 0.695    │ 0.00545    │ 1.0    │
+└─────────┴──────────┴────────────┴────────┘
+
+3. KEY CHALLENGES & SOLUTIONS
+
+A. Data Preparation
+- Problem: Initial 200x200px PNG too small
+- Solution: Collected 17 real-world images with:
+  * Lighting variants
+  * Diverse backgrounds
+  * Occlusion cases
+
+B. Annotation Issues
+- Problem: Invalid coordinates (>1.0)
+- Solution: Wrote convert_rectangles.py with:
+  * Boundary checks
+  * Shape validation
+  * Normalization enforcement
+
+C. Training Difficulties
+- Early Failure: mAP50 0.2 (9 images)
+- Breakthrough: Added 8 targeted images + fixed:
+  * Validation splits
+  * Augmentation balance
+
+4. REJECTED APPROACHES
+- TensorFlow: Violated task requirements
+- Roboflow Synthetic Data: Time-ineffective
+- Polygon Annotations: Conversion failures
+- Extreme Augmentation: Distorted features
+
+5. REPRODUCTION INSTRUCTIONS
+
+A. Windows Setup
+1. Run init-cpu.bat or init-gpu.bat
+2. Verify dependencies:
+   torch==2.0.1
+   ultralytics==8.0.0
+
+B. Training
+.venv\Scripts\python train.py
+
+C. Inference
+.venv\Scripts\python test.py test_images/ results/
+
+6. FUTURE WORK
+- Immediate: 10+ sad-class images
+- Optimization:
+  * Confidence threshold tuning
+  * ONNX conversion for mobile
+  * Active learning integration
+
+=== Files Submitted ===
+1. Core Components:
+- train.py, test.py, init-*.bat
+- dataset.yaml, best.pt
+
+2. Supporting Materials:
+- /tools/convert_rectangles.py
+- /runs/ (13 training experiments)
+- /sample_images/ (test cases)
+
+=== Report Ends ===
